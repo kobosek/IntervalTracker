@@ -1,0 +1,14 @@
+<strings>
+    <string id="AppName">IntervalTracker</string>
+    
+    <string id="MainMenuTitle">Menu</string>
+    <string id="MainMenuActivity">Activity</string>
+    <string id="MainMenuSettings">Settings</string>
+    
+    <string id="SettingsMenuTitle">Settings</string>
+	<string id="SettingsMenuRepetitions">Reps</string>
+	<string id="SettingsMenuSets">Sets</string>
+	<string id="SettingsMenuWorkTimer">Work Time</string>
+	<string id="SettingsMenuRestTimer">Rest Time</string>
+	<string id="SettingsMenuActivityType">Activity Type</string>
+</strings>
