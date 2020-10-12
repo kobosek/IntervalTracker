@@ -1,12 +1,15 @@
 using Toybox.WatchUi as Ui;
 using Toybox.Graphics as Gfx;
 
+
+
 class ActivityView extends Ui.View 
 {
 	private var m_activity;
 	
 	function initialize(p_activity) 
   	{
+  		m_activity = p_activity;
 		View.initialize();
   	}
  
@@ -18,22 +21,44 @@ class ActivityView extends Ui.View
   	function onUpdate(p_dc)
   	{
   		var l_width = p_dc.getWidth();
-  		var l_height = p_dc.getHeight();
-  		
-   		System.println("Width: " + l_width + " Height: " + l_height);  		
+  		var l_height = p_dc.getHeight();		
 
-		//introduce background color COLOR_WHITE
+		//draw background color COLOR_WHITE
 		p_dc.setColor(Gfx.COLOR_WHITE, Gfx.COLOR_TRANSPARENT);
 		p_dc.fillRectangle(0, 0, l_width, l_height);
 		
-		//draw text with COLOR_BLACK
+		//draw background color COLOR_BLACK for sets rectangle
 		p_dc.setColor(Gfx.COLOR_BLACK, Gfx.COLOR_TRANSPARENT);
-  		p_dc.drawText(l_width*1/4, l_height*1/4, Gfx.FONT_XTINY, "MY TEXT", Gfx.TEXT_JUSTIFY_CENTER);
-  		p_dc.drawText(l_width*3/4, l_height*1/4, Gfx.FONT_XTINY, "MY TEXT", Gfx.TEXT_JUSTIFY_CENTER);
-  		p_dc.drawText(l_width*1/4, l_height*3/4, Gfx.FONT_XTINY, "MY TEXT", Gfx.TEXT_JUSTIFY_CENTER);
-  		p_dc.drawText(l_width*3/4, l_height*3/4, Gfx.FONT_XTINY, "MY TEXT", Gfx.TEXT_JUSTIFY_CENTER);
-  	}
+		p_dc.fillRectangle(l_width*6/16, l_height*10/16, l_width*2/16, l_height*2/16);		
+				
+		//draw lines
+		p_dc.drawLine(			 0,  l_height*4/16, 	 l_width,  l_height*4/16);
+		p_dc.drawLine(			 0,  l_height*8/16, 	 l_width,  l_height*8/16);
+		p_dc.drawLine(			 0, l_height*12/16, 	 l_width, l_height*12/16);
+		p_dc.drawLine(l_width*8/16,  l_height*4/16, l_width*8/16, l_height*12/16);
+		
+		//draw labels text with COLOR_BLACK
+		p_dc.drawText( l_width*8/16, 	   		  0, Gfx.FONT_SYSTEM_XTINY,		     "HR", Gfx.TEXT_JUSTIFY_CENTER);
+  		p_dc.drawText( l_width*4/16,  l_height*4/16, Gfx.FONT_SYSTEM_XTINY,		   "WORK", Gfx.TEXT_JUSTIFY_CENTER);
+  		p_dc.drawText(l_width*12/16,  l_height*4/16, Gfx.FONT_SYSTEM_XTINY,		   "REST", Gfx.TEXT_JUSTIFY_CENTER);
+  		p_dc.drawText( l_width*4/16,  l_height*8/16, Gfx.FONT_SYSTEM_XTINY,		    "REP", Gfx.TEXT_JUSTIFY_CENTER);
+  		p_dc.drawText(l_width*12/16,  l_height*8/16, Gfx.FONT_SYSTEM_XTINY, "TIME OF DAY", Gfx.TEXT_JUSTIFY_CENTER);
+  		p_dc.drawText( l_width*8/16, l_height*12/16, Gfx.FONT_SYSTEM_XTINY,   "TIME LEFT", Gfx.TEXT_JUSTIFY_CENTER);
+  		
+  		//draw data text with COLOR_BLACK	
+ 		p_dc.drawText( l_width*8/16,  l_height*2/16, Gfx.FONT_SYSTEM_NUMBER_MILD,         m_activity.getHeartRate(), Gfx.TEXT_JUSTIFY_CENTER | Gfx.TEXT_JUSTIFY_VCENTER);
+  		p_dc.drawText( l_width*4/16,  l_height*6/16, Gfx.FONT_SYSTEM_NUMBER_MILD, m_activity.getRemainingWorkTime(), Gfx.TEXT_JUSTIFY_CENTER | Gfx.TEXT_JUSTIFY_VCENTER);
+  		p_dc.drawText(l_width*12/16,  l_height*6/16, Gfx.FONT_SYSTEM_NUMBER_MILD, m_activity.getRemainingRestTime(), Gfx.TEXT_JUSTIFY_CENTER | Gfx.TEXT_JUSTIFY_VCENTER);
+  		p_dc.drawText( l_width*4/16, l_height*10/16, Gfx.FONT_SYSTEM_NUMBER_MILD, m_activity.getCurrentRepetition(), Gfx.TEXT_JUSTIFY_CENTER | Gfx.TEXT_JUSTIFY_VCENTER);
+  		p_dc.drawText(l_width*12/16, l_height*10/16, Gfx.FONT_SYSTEM_NUMBER_MILD, 		  m_activity.getTimeOfDay(), Gfx.TEXT_JUSTIFY_CENTER | Gfx.TEXT_JUSTIFY_VCENTER); 		
+  		p_dc.drawText( l_width*8/16, l_height*14/16, Gfx.FONT_SYSTEM_NUMBER_MILD,   	   m_activity.getTimeLeft(), Gfx.TEXT_JUSTIFY_CENTER | Gfx.TEXT_JUSTIFY_VCENTER); 
+  		
+  		//draw data text with COLOR_WHITE
+		p_dc.setColor(Gfx.COLOR_WHITE, Gfx.COLOR_TRANSPARENT);
+  		p_dc.drawText( l_width*7/16, l_height*10/16, Gfx.FONT_SYSTEM_TINY, 				 m_activity.getCurrentSet(), Gfx.TEXT_JUSTIFY_CENTER);
 
+  	}
+}
 //  	function onUpdate(dc) 
 //  	{
 //  		setupDisplay(dc, m_model.phase);
@@ -107,4 +132,3 @@ class ActivityView extends Ui.View
 //  	{
 //    	return "0:" + m_model.counter.format("%02d");
 //  	}
-}

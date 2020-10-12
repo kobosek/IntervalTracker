@@ -5,8 +5,113 @@ using Toybox.ActivityRecording as ActivityRecording;
 using Toybox.Sensor as Sensor;
 using Toybox.Time as Time;
 
+var g_settings = 
+{
+	:activityName => "Interval Training",
+	:activityType => ActivityRecording.SPORT_TRAINING,
+	:activitySubType => ActivityRecording.SUB_SPORT_STRENGTH_TRAINING,
+	:repetitions => 4,
+	:sets => 6,
+	:workTime => 30,
+	:restTime => 20,
+};
+
 class Activity
 {
+	private var m_activityName;
+	private var m_activityType;
+	private var m_activitySubType;
+	private var m_currentRepetition;
+	private var m_currentSet;
+	private var m_remainingWorkTime;
+	private var m_remainingRestTime;
+	
+	function initialize()
+	{
+		m_activityName = g_settings[:activityName];
+		m_activityType = g_settings[:activityType];
+		m_activitySubType = g_settings[:activitySubType];
+		m_currentRepetition = 1;
+		m_currentSet = 1;
+		m_remainingWorkTime = g_settings[:workTime];
+		m_remainingRestTime = g_settings[:restTime];
+	}
+	
+	function getHeartRate()
+	{
+		var l_heartRate = "0";
+		return l_heartRate;
+	}	
+	
+	function getRemainingWorkTime()
+	{
+		var l_remainingWorkTime = formatSecondsToMMSS(m_remainingWorkTime);
+		return l_remainingWorkTime;
+	}
+	
+	function getRemainingRestTime()
+	{
+		var l_remainingRestTime = formatSecondsToMMSS(m_remainingRestTime);
+		return l_remainingRestTime;
+	}	
+	
+	function getCurrentRepetition()
+	{
+		return m_currentRepetition;
+	}
+	
+	function getCurrentSet()
+	{
+		return m_currentSet;
+	}
+	
+	function getTimeOfDay()
+	{
+  		var l_clockTime = System.getClockTime();
+  		var l_timeOfDay = l_clockTime.hour + ":" + l_clockTime.min;
+  		return l_timeOfDay;
+	}	
+		
+	function getTimeLeft()
+	{
+		var l_repetitionsRemainingFromSetsNotStarted = g_settings[:repetitions] * (g_settings[:sets] - m_currentSet);
+		var l_repetitionsRemainingFromCurrentSet = g_settings[:repetitions] - m_currentRepetition;
+		var l_remainingFullRepetitions = l_repetitionsRemainingFromCurrentSet + l_repetitionsRemainingFromSetsNotStarted;
+		var l_timeOfOneRepetition = g_settings[:workTime] + g_settings[:restTime];
+		var l_totalSeconds = m_remainingWorkTime + m_remainingRestTime + (l_timeOfOneRepetition * l_remainingFullRepetitions);
+		
+		var l_timeLeft = formatSecondsToHMMSS(l_totalSeconds);
+		
+		return l_timeLeft;
+	}	
+	
+	function formatSecondsToMMSS(p_seconds)
+	{
+		var l_minutes = p_seconds / 60;
+		var remainder = p_seconds - l_minutes * 60;
+		var l_seconds =  remainder;
+		
+		var l_MMSS = l_minutes.format("%02d") + ":" + l_seconds.format("%02d");
+		
+		return l_MMSS;	
+	}	
+	
+	function formatSecondsToHMMSS(p_seconds)
+	{
+		var l_hours = p_seconds / 3600;
+		var remainder = p_seconds - l_hours * 3600;
+		
+		var l_HMMSS = formatSecondsToMMSS(remainder);
+		
+		if (l_hours > 0)
+		{	
+			var l_HMMSS = l_hours.format("%d") + ":" + l_HMMSS;		
+		}
+		
+		return l_HMMSS;
+	}
+
+	
 	function start()
 	{
 		System.println("Start");
@@ -36,17 +141,7 @@ class Activity
 		Attention.backlight(false);
 	}
 }
-//var g_settings = 
-//{
-//	:activityName => "Interval Training",
-//	:activityType => ActivityRecording.SPORT_TRAINING,
-//	:activitySubType => ActivityRecording.SUB_SPORT_STRENGTH_TRAINING,
-//	:repetitions => 4,
-//	:sets => 6,
-//	:workTime => 30,
-//	:restTime => 20,
-//	:prepTime => 5
-//};
+
 //
 //class Activity {
 //
