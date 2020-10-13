@@ -1,19 +1,21 @@
+using Toybox.Time as Time;
 using Toybox.Timer as Timer;
 using Toybox.WatchUi as Ui;
 using Toybox.Attention as Attention;
+
+using Toybox.Activity as Activity;
+using Toybox.ActivityMonitor as ActivityMonitor;
 using Toybox.ActivityRecording as ActivityRecording;
-using Toybox.Sensor as Sensor;
-using Toybox.Time as Time;
 
 var g_settings = 
 {
 	:activityName => "Interval Training",
 	:activityType => ActivityRecording.SPORT_TRAINING,
 	:activitySubType => ActivityRecording.SUB_SPORT_STRENGTH_TRAINING,
-	:repetitions => 4,
-	:sets => 6,
-	:workTime => 30,
-	:restTime => 20,
+	:repetitions => 3,
+	:sets => 3,
+	:workTime => 10,
+	:restTime => 10,
 };
 
 class Activity
@@ -25,6 +27,9 @@ class Activity
 	private var m_currentSet;
 	private var m_remainingWorkTime;
 	private var m_remainingRestTime;
+	private var m_state;
+	
+	private var refreshTimer;
 	
 	function initialize()
 	{
@@ -35,13 +40,121 @@ class Activity
 		m_currentSet = 1;
 		m_remainingWorkTime = g_settings[:workTime];
 		m_remainingRestTime = g_settings[:restTime];
+		m_state = :work;
+		
+		refreshTimer = new Timer.Timer();
 	}
+	
+	function start()
+	{
+		System.println("Start");
+		refreshTimer.start(method(:update), 1000, true);	
+	}
+	
+	function stop()
+	{
+		System.println("Stop");
+		refreshTimer.stop();
+	}	
+	
+	function update()
+	{
+		if(m_state == :work)
+		{
+			work();
+		}	
+		else
+		{
+			rest();
+		}
+		
+		Ui.requestUpdate();
+	}
+	
+	function work()
+	{
+		m_remainingWorkTime--;
+		conditionalVibrate(m_remainingWorkTime < 3, 100);		
+		
+		if(m_remainingWorkTime == 0)
+		{
+			m_state = :rest;
+		}
+	}
+	
+	function rest()
+	{
+		m_remainingRestTime--;
+		conditionalVibrate(m_remainingRestTime < 3, 100);		
+			
+		if(m_remainingRestTime == 0)
+		{
+			m_state = :work;
+			finishRepetition();
+		}
+	}
+	
+	function finishRepetition()
+	{
+		if(m_currentRepetition == g_settings[:repetitions])
+		{
+			if(m_currentSet == g_settings[:sets])
+			{
+				stop();
+				return;
+			}
+			m_currentRepetition = 0;
+			m_currentSet++;
+		}
+		m_currentRepetition++;
+		m_remainingWorkTime = g_settings[:workTime];
+		m_remainingRestTime = g_settings[:restTime];		
+	}
+	
+	function vibrate(l_duration)
+	{
+		var l_vibrateData = [new Attention.VibeProfile(100, l_duration)];
+		Attention.vibrate(l_vibrateData);
+	}
+	
+	function conditionalVibrate(l_condition, l_duration)
+	{
+		if(l_condition)
+		{
+			vibrate(l_duration);
+		}
+	}
+	
+	function startBacklight()
+	{
+		Attention.backlight(true);
+	}
+	
+	function stopBackligt()
+	{
+		Attention.backlight(false);
+	}	
 	
 	function getHeartRate()
 	{
-		var l_heartRate = "0";
+		var l_heartRate = Activity.getActivityInfo().currentHeartRate;
+		
+		if(l_heartRate == null)
+		{
+			l_heartRate = "--";
+			if(ActivityMonitor has :getHeartRateHistory)
+			{
+				var l_heartRateHistory = ActivityMonitor.getHeartRateHistory(1, true);
+				var l_heartRateSample = l_heartRateHistory.next();
+				
+				if(l_heartRateSample != null and l_heartRateSample.heartRate != ActivityMonitor.INVALID_HR_SAMPLE)
+				{
+					l_heartRate = l_heartRateSample.heartRate;
+				}	
+			}
+		}
 		return l_heartRate;
-	}	
+	}
 	
 	function getRemainingWorkTime()
 	{
@@ -68,7 +181,7 @@ class Activity
 	function getTimeOfDay()
 	{
   		var l_clockTime = System.getClockTime();
-  		var l_timeOfDay = l_clockTime.hour + ":" + l_clockTime.min;
+  		var l_timeOfDay = l_clockTime.hour.format("%02d") + ":" + l_clockTime.min.format("%02d");
   		return l_timeOfDay;
 	}	
 		
@@ -109,36 +222,6 @@ class Activity
 		}
 		
 		return l_HMMSS;
-	}
-
-	
-	function start()
-	{
-		System.println("Start");
-		vibrate(500);
-		startBacklight();
-	}
-	
-	function stop()
-	{
-		System.println("Stop");
-		stopBackligt();
-	}
-
-	function vibrate(duration)
-	{
-		var l_vibrateData = [new Attention.VibeProfile(100, duration)];
-		Attention.vibrate(l_vibrateData);
-	}
-	
-	function startBacklight()
-	{
-		Attention.backlight(true);
-	}
-	
-	function stopBackligt()
-	{
-		Attention.backlight(false);
 	}
 }
 

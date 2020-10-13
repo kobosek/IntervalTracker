@@ -24,6 +24,6 @@ class ActivityDelegate extends Ui.BehaviorDelegate
 	function onBack() 
 	{
 		m_activity.stop();	
-		return true;	
+		return false;	
 	}
 }
