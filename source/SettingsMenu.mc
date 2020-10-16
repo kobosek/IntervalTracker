@@ -10,7 +10,7 @@ class SettingsMenu
 	
 		var l_menuItems = 
 		[
-			[:activityType, Rez.Strings.SettingsMenuActivityType],
+			//[:activityType, Rez.Strings.SettingsMenuActivityType],
 			[:repetitions, Rez.Strings.SettingsMenuRepetitions],	
 			[:sets, Rez.Strings.SettingsMenuSets],
 			[:workTimer, Rez.Strings.SettingsMenuWorkTimer],
@@ -19,7 +19,7 @@ class SettingsMenu
 		
 		var l_menuActions = 
 		{
-			:activityType => self.method(:showActivityTypeSettings),
+			//:activityType => self.method(:showActivityTypeSettings),
 			:repetitions => self.method(:showRepetitionsSettings),
 			:sets => self.method(:showSetsSettings),
 			:workTimer => self.method(:showWorkTimerSettings),
@@ -29,10 +29,10 @@ class SettingsMenu
 		Ui.pushView(new MenuView(l_menuTitle, l_menuItems), new MenuDelegate(l_menuActions), Ui.SLIDE_UP);		
 	}
 		
-	function showActivityTypeSettings()
-	{
-		System.println("Activity Type Settings");
-	}
+//	function showActivityTypeSettings()
+//	{
+//		System.println("Activity Type Settings");
+//	}
 	
 	function showRepetitionsSettings()
 	{
@@ -46,6 +46,7 @@ class SettingsMenu
 	
 	function showWorkTimerSettings()
 	{
+		Ui.pushView(new Ui.Picker(), new Ui.PickerDelegate(), Ui.SLIDE_UP);
 		System.println("Work Timer Settings");
 	}	
 	

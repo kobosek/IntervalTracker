@@ -1,80 +1,179 @@
 using Toybox.Time as Time;
 using Toybox.Timer as Timer;
-using Toybox.WatchUi as Ui;
 using Toybox.Attention as Attention;
+using Toybox.WatchUi as Ui;
 
-using Toybox.Activity as Activity;
-using Toybox.ActivityMonitor as ActivityMonitor;
+using Toybox.Sensor as Sensor;
+//using Toybox.Activity as Activity;
+//using Toybox.ActivityMonitor as ActivityMonitor;
 using Toybox.ActivityRecording as ActivityRecording;
 
 var g_settings = 
 {
-	:activityName => "Interval Training",
-	:activityType => ActivityRecording.SPORT_TRAINING,
-	:activitySubType => ActivityRecording.SUB_SPORT_STRENGTH_TRAINING,
-	:repetitions => 3,
-	:sets => 3,
-	:workTime => 10,
-	:restTime => 10,
+	:repetitions => 4,
+	:sets => 7,
+	:workTime => 30,
+	:restTime => 15,
 };
 
 class Activity
 {
-	private var m_activityName;
-	private var m_activityType;
-	private var m_activitySubType;
 	private var m_currentRepetition;
 	private var m_currentSet;
 	private var m_remainingWorkTime;
 	private var m_remainingRestTime;
+	private var m_startedTotalTime;
 	private var m_state;
-	
-	private var refreshTimer;
+	private var m_heartRate;
+	private var m_recordingSession;
+	//private var m_systemTimer;
 	
 	function initialize()
 	{
-		m_activityName = g_settings[:activityName];
-		m_activityType = g_settings[:activityType];
-		m_activitySubType = g_settings[:activitySubType];
 		m_currentRepetition = 1;
 		m_currentSet = 1;
 		m_remainingWorkTime = g_settings[:workTime];
 		m_remainingRestTime = g_settings[:restTime];
-		m_state = :work;
-		
-		refreshTimer = new Timer.Timer();
-	}
-	
-	function start()
-	{
-		System.println("Start");
-		refreshTimer.start(method(:update), 1000, true);	
-	}
-	
-	function stop()
-	{
-		System.println("Stop");
-		refreshTimer.stop();
-	}	
-	
-	function update()
-	{
-		if(m_state == :work)
+		m_startedTotalTime = 0;
+		m_state = :notStarted;
+		m_heartRate = "--";	
+		m_recordingSession = ActivityRecording.createSession(
 		{
-			work();
+			:sport => ActivityRecording.SPORT_TRAINING,
+			:subsport => ActivityRecording.SUB_SPORT_STRENGTH_TRAINING,
+			:name => "Interval Training"
+		});
+		
+		Sensor.setEnabledSensors([Sensor.SENSOR_HEARTRATE]);
+		Sensor.enableSensorEvents(method(:onTimeout));		
+		//1Hz sensor event is used as a system timer instad of Timer
+		//m_systemTimer = new Timer.Timer();
+		//m_systemTimer.start(method(:onTimeout), 1000, true);
+	}
+	
+	function onMenu()
+	{
+		if(m_state == :notStarted)
+		{
+			var l_mainMenu = new MainMenu();
 		}	
-		else
-		{
-			rest();
-		}
-		
-		Ui.requestUpdate();
 	}
 	
-	function work()
+	function onSelect()
+	{
+		switch(m_state)
+		{
+			case :notStarted:
+			{
+				startRecording();	
+			}
+			case :paused:
+			{
+				if(m_remainingWorkTime > 0)
+				{
+					m_state = :work;
+				}
+				else
+				{
+					m_state = :rest;
+				}
+				break;	
+			}			
+			case :work:
+			case :rest:
+			{
+				m_state = :paused;
+				break;
+			}
+		}	
+		updateUi();
+	}
+	
+	function onBack()
+	{
+		switch(m_state)
+		{
+			case :notStarted:
+			{
+				return false;
+			}
+			case :work:
+			{
+				break;
+			}
+			case :rest:
+			{
+				break;
+			}
+			case :paused:
+			case :finished:
+			{
+				stopRecording();
+				saveRecording();
+				return false;
+			}
+		}
+		return true;
+	}
+		
+	function startRecording()
+	{
+		m_recordingSession.start();	
+	}
+	
+	function stopRecording()
+	{
+		m_recordingSession.stop();
+	}
+	
+	function saveRecording()
+	{
+		m_recordingSession.save();
+	}
+	
+	function discardRecording()
+	{
+		m_recordingSession.discard();
+	}
+	
+	function onTimeout(p_sensorInfo)
+	{	
+		updateHeartRate(p_sensorInfo);
+		
+		switch(m_state)
+		{
+			case :work:
+			{
+				workTimeout();
+				break;
+			}
+			case :rest:
+			{
+				restTimeout();
+				break;
+			}
+		}
+		if(m_state != :notStarted)
+		{
+			m_startedTotalTime++;
+		}
+		updateUi();
+	}
+	
+	function updateHeartRate(p_sensorInfo)
+	{
+		var l_hr = p_sensorInfo.heartRate;
+		
+        if(l_hr != null)
+        {
+            m_heartRate = l_hr;
+        }
+	}
+	
+	function workTimeout()
 	{
 		m_remainingWorkTime--;
-		conditionalVibrate(m_remainingWorkTime < 3, 100);		
+		conditionalVibrate(m_remainingWorkTime < 3, 300);		
 		
 		if(m_remainingWorkTime == 0)
 		{
@@ -82,10 +181,10 @@ class Activity
 		}
 	}
 	
-	function rest()
+	function restTimeout()
 	{
 		m_remainingRestTime--;
-		conditionalVibrate(m_remainingRestTime < 3, 100);		
+		conditionalVibrate(m_remainingRestTime < 3, 300);		
 			
 		if(m_remainingRestTime == 0)
 		{
@@ -93,6 +192,10 @@ class Activity
 			finishRepetition();
 		}
 	}
+	function updateUi()
+	{
+		Ui.requestUpdate();
+	}	
 	
 	function finishRepetition()
 	{
@@ -100,7 +203,8 @@ class Activity
 		{
 			if(m_currentSet == g_settings[:sets])
 			{
-				stop();
+				m_state = :finished;
+				vibrate(1000);
 				return;
 			}
 			m_currentRepetition = 0;
@@ -123,37 +227,28 @@ class Activity
 		{
 			vibrate(l_duration);
 		}
-	}
-	
-	function startBacklight()
-	{
-		Attention.backlight(true);
-	}
-	
-	function stopBackligt()
-	{
-		Attention.backlight(false);
 	}	
 	
 	function getHeartRate()
 	{
-		var l_heartRate = Activity.getActivityInfo().currentHeartRate;
-		
-		if(l_heartRate == null)
-		{
-			l_heartRate = "--";
-			if(ActivityMonitor has :getHeartRateHistory)
-			{
-				var l_heartRateHistory = ActivityMonitor.getHeartRateHistory(1, true);
-				var l_heartRateSample = l_heartRateHistory.next();
-				
-				if(l_heartRateSample != null and l_heartRateSample.heartRate != ActivityMonitor.INVALID_HR_SAMPLE)
-				{
-					l_heartRate = l_heartRateSample.heartRate;
-				}	
-			}
-		}
-		return l_heartRate;
+//		var l_heartRate = Activity.getActivityInfo().currentHeartRate;
+//		
+//		if(l_heartRate == null)
+//		{
+//			l_heartRate = "--";
+//			if(ActivityMonitor has :getHeartRateHistory)
+//			{
+//				var l_heartRateHistory = ActivityMonitor.getHeartRateHistory(1, true);
+//				var l_heartRateSample = l_heartRateHistory.next();
+//				
+//				if(l_heartRateSample != null and l_heartRateSample.heartRate != ActivityMonitor.INVALID_HR_SAMPLE)
+//				{
+//					l_heartRate = l_heartRateSample.heartRate;
+//				}	
+//			}
+//		}
+//		return l_heartRate;
+		return m_heartRate;
 	}
 	
 	function getRemainingWorkTime()
@@ -198,6 +293,22 @@ class Activity
 		return l_timeLeft;
 	}	
 	
+	function getTotalTime()
+	{
+		var l_totalTime = formatSecondsToMMSS(m_startedTotalTime);
+		return l_totalTime;
+	}
+
+	function isPaused()
+	{
+		return m_state == :paused;
+	}
+	
+	function isFinished()
+	{
+		return m_state == :finished;
+	}
+	
 	function formatSecondsToMMSS(p_seconds)
 	{
 		var l_minutes = p_seconds / 60;
@@ -224,111 +335,3 @@ class Activity
 		return l_HMMSS;
 	}
 }
-
-//
-//class Activity {
-//
-//	function createSession()
-//	{
-//		return ActivityRecording.createSession(
-//		{
-//			:name => g_settings[:activityName],
-//			:sport => g_settings[:activityType],
-//			:subSport => g_settings[:activitySubType]			
-//		});
-//	}
-//	
-//	var REST_TIME;
-//	var PREP_TIME;
-//	var WORK_TIME;
-//	var TOTAL_ROUNDS;
-//	const HAS_TONES = Attention has :playTone;
-//
-//	var counter;
-//	var round = 0;
-//	var phase = :prep;
-//	var done = false;
-//	var session = createSession();
-//
-//	hidden var refreshTimer = new Timer.Timer();
-//	hidden var sensors = Sensor.setEnabledSensors([Sensor.SENSOR_HEARTRATE]);
-//
-//	
-//	function initialize()
-//	{
-//		REST_TIME = g_settings[:restTime];
-//		PREP_TIME = g_settings[:prepTime];
-//		WORK_TIME = g_settings[:workTime];
-//		TOTAL_ROUNDS = g_settings[:repetitions];
-//
-//		counter = PREP_TIME;
-//	}
-//
-//	function start()
-//	{
-//		refreshTimer.start(method(:refresh), 1000, true);
-//		startBuzz();
-//		Ui.requestUpdate();
-//	}
-//
-//	function refresh()
-//	{
-//		if (counter > 1)
-//		{
-//			counter--;
-//		} 
-//		else 
-//		{
-//			if (phase == :prep) 
-//			{
-//				session.start();
-//				phase = :work;
-//				counter = WORK_TIME;
-//				round++;
-//				intervalBuzz();
-//			} 
-//			else if (phase == :work) 
-//			{
-//				phase = :rest;
-//				counter = REST_TIME;
-//				intervalBuzz();
-//			}	
-//			else if (phase == :rest) 
-//			{
-//				if (round == TOTAL_ROUNDS)
-//				{
-//					completeSession();
-//					stopBuzz();
-//				} 
-//				else 
-//				{
-//					phase = :work;
-//					counter = WORK_TIME;
-//					round++;
-//					intervalBuzz();
-//				}
-//			}
-//		}
-//		Ui.requestUpdate();
-//	}
-//
-//	function completeSession() 
-//	{
-//		done = true;
-//		session.stop();
-//		session.save();
-//		refreshTimer.stop();
-//	}
-//
-//
-//	function dropSession() 
-//	{
-//		refreshTimer.stop();
-//		if (session.isRecording()) 
-//		{
-//			session.stop();
-//			session.discard();
-//		}
-//	}
-//
-//}

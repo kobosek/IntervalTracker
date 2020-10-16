@@ -23,6 +23,6 @@ class MainMenu
 	
 	function showSettingsMenu()
 	{
-		var l_settingsMeu = new SettingsMenu();
+		var l_settingsMenu = new SettingsMenu();
 	}
 }	

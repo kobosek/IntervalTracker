@@ -2,6 +2,8 @@
     <iq:application entry="IntervalTracker" id="91edbe4f38684adaa1178c812dbe1686" launcherIcon="@Drawables.LauncherIcon" name="@Strings.AppName" type="watch-app">
         <iq:products>
             <iq:product id="fenix6xpro"/>
+            <iq:product id="vivoactive3"/>
+            <iq:product id="vivoactive3m"/>
         </iq:products>
         <iq:permissions>
             <iq:uses-permission id="Fit"/>
