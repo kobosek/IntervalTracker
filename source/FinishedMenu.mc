@@ -2,13 +2,15 @@ using Toybox.WatchUi as Ui;
 
 class FinishedMenu
 {
-	private var m_activity;
+	private var m_activityModel;
+	private var m_resumeActivityCallback;
 	
-	function initialize(p_activity)
+	function initialize(p_activityModel, p_resumeActivityCallback)
 	{	
-		m_activity = p_activity;
+		m_activityModel = p_activityModel;
+		m_resumeActivityCallback = p_resumeActivityCallback;
 		
-		var l_menuTitle = m_activity.getTimeElapsed();
+		var l_menuTitle = Rez.Strings.FinishedMenuTitle;
 	
 		var l_menuItems = 
 		[
@@ -29,22 +31,22 @@ class FinishedMenu
 	
 	function resumeActivity()
 	{
-		m_activity.resumeActivity();
+		m_resumeActivityCallback.invoke();
 		Ui.popView(Ui.SLIDE_IMMEDIATE);
 	}
 	
 	function saveActivity()
 	{	
-		m_activity.stopActivity();
-		m_activity.saveActivity();
+		m_activityModel.stopActivity();
+		m_activityModel.saveActivity();
 		Ui.popView(Ui.SLIDE_IMMEDIATE);
 		Ui.popView(Ui.SLIDE_IMMEDIATE);
 	}
 	
 	function discardActivity()
 	{
-		m_activity.stopActivity();
-		m_activity.discardActivity();
+		m_activityModel.stopActivity();
+		m_activityModel.discardActivity();
 		Ui.popView(Ui.SLIDE_IMMEDIATE);
 		Ui.popView(Ui.SLIDE_IMMEDIATE);
 	}	

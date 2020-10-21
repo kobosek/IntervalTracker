@@ -1,21 +1,24 @@
 class StateWork
 {
-	private var m_activity;
+	private var m_activityModel;
+	private var m_activityWeakRef;
 	
-	function initialize(p_activity)
+	function initialize(p_activityModel, p_activityWeakRef)
 	{
 		System.println("State: StateWork");
-		m_activity = p_activity;
+		
+		m_activityModel = p_activityModel;
+		m_activityWeakRef = p_activityWeakRef;
 	}
 	
 	function onMenu()
 	{
 		System.println("onMenu not available in StateWork");
-	}
-	
+	}	
+		
 	function onSelect()
 	{
-		m_activity.pauseActivity();
+		pauseActivity();
 	}
 
 	function onBack()
@@ -26,10 +29,18 @@ class StateWork
 
 	function onActivityTimer()
 	{
-		m_activity.workTimeout();
-		m_activity.updateTimeElapsed();
+		if(m_activityModel.getRemainingWorkTime() > 0)
+		{
+			m_activityModel.decrementRemainingWorkTime();
+			m_activityModel.incrementTimeElapsed();
+		}
+		
+		if(m_activityModel.getRemainingWorkTime() == 0)
+		{
+			m_activityWeakRef.get().stateTransition(:stateRest);
+		}	
 	}
-
+	
 	function isPaused()
 	{
 		return false;
@@ -39,4 +50,10 @@ class StateWork
 	{
 		return false;
 	}
+
+	private function pauseActivity()
+	{
+		m_activityWeakRef.get().stateTransition(:statePaused);
+	}
+
 }

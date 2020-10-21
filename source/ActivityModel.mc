@@ -1,11 +1,12 @@
 using Toybox.Attention as Attention;
+using Toybox.ActivityRecording as ActivityRecording;
 
 var g_settings = 
 {
-	:repetitions => 4,
-	:sets => 7,
-	:workTime => 30,
-	:restTime => 15
+	:repetitions => 2,
+	:sets => 2,
+	:workTime => 5,
+	:restTime => 5
 };
 
 class ActivityModel
@@ -18,6 +19,8 @@ class ActivityModel
 	private var m_timeElapsed;
 	private var m_heartRate;
 	
+	private var m_recordingSession;	
+	
 	function initialize()
 	{
 		m_currentRepetition = 1;
@@ -26,43 +29,40 @@ class ActivityModel
 		m_remainingRestTime = g_settings[:restTime];
 		m_timeElapsed = 0;
 		m_heartRate = "--";	
-	}
-	
-	function workTimeout()
-	{
-		m_remainingWorkTime--;
-		conditionalVibrate(m_remainingWorkTime < 3, 300);		
-	}
-	
-	function restTimeout()
-	{
-		m_remainingRestTime--;
-		conditionalVibrate(m_remainingWorkTime < 3, 300);		
-	}
-	
-	function finishRepetition()
-	{
-		if(m_currentRepetition == g_settings[:repetitions])
+		
+		m_recordingSession = ActivityRecording.createSession(
 		{
-			if(m_currentSet == g_settings[:sets])
-			{
-				stateTransition(:finished);
-				vibrate(1000);
-				return;
-			}
-			m_currentRepetition = 0;
-			m_currentSet++;
-		}
-		m_currentRepetition++;
-		m_remainingWorkTime = g_settings[:workTime];
-		m_remainingRestTime = g_settings[:restTime];	
+			:sport => ActivityRecording.SPORT_TRAINING,
+			:subSport => ActivityRecording.SUB_SPORT_STRENGTH_TRAINING,
+			:name => "Interval Training"
+		});
+	}
+	
+	function startActivity()
+	{
+		m_recordingSession.start();		
 	}
 
-	function updateTimeElapsed()
+	function stopActivity()
 	{
-		m_timeElapsed++;
+		m_recordingSession.stop();
 	}
 	
+	function addLap()
+	{
+		m_recordingSession.addLap();
+	}
+	
+	function saveActivity()
+	{
+		m_recordingSession.save();
+	}
+	
+	function discardActivity()
+	{
+		m_recordingSession.discard();
+	}	
+		
 	function updateHeartRate(p_sensorInfo)
 	{
 		var l_hr = p_sensorInfo.heartRate;
@@ -95,16 +95,38 @@ class ActivityModel
 		return m_heartRate;
 	}
 	
+	function restartTimers()
+	{
+		m_remainingWorkTime = g_settings[:workTime];
+		m_remainingRestTime = g_settings[:restTime];
+	}
+	
+	function decrementRemainingWorkTime()
+	{
+		m_remainingWorkTime--;
+		conditionalVibrate(m_remainingWorkTime < 3, 300);		
+	}
+		
 	function getRemainingWorkTime()
 	{
-		var l_remainingWorkTime = formatSecondsToMMSS(m_remainingWorkTime);
-		return l_remainingWorkTime;
-	}	
+		return m_remainingWorkTime;
+	}
 		
+	function decrementRemainingRestTime()
+	{
+		m_remainingRestTime--;
+		conditionalVibrate(m_remainingRestTime < 3, 300);	
+		conditionalVibrate(isLastRepetition() && isLastSet(), 3000);		
+	}	
+	
 	function getRemainingRestTime()
 	{
-		var l_remainingRestTime = formatSecondsToMMSS(m_remainingRestTime);
-		return l_remainingRestTime;
+		return m_remainingRestTime;
+	}	
+	
+	function incrementCurrentRepetition()
+	{
+		m_currentRepetition++;
 	}	
 	
 	function getCurrentRepetition()
@@ -112,11 +134,31 @@ class ActivityModel
 		return m_currentRepetition;
 	}	
 	
+	function isLastRepetition()
+	{
+		return m_currentRepetition == g_settings[:repetitions];
+	}
+	
+	function restartRepetitions()
+	{
+		m_currentRepetition = 1;
+	}
+	
+	function incrementCurrentSet()
+	{
+		m_currentSet++;
+	}
+	
 	function getCurrentSet()
 	{
 		return m_currentSet;
 	}
-	
+
+	function isLastSet()
+	{
+		return m_currentSet == g_settings[:sets];
+	}
+		
 	function getTimeOfDay()
 	{
   		var l_clockTime = System.getClockTime();
@@ -130,41 +172,28 @@ class ActivityModel
 		var l_repetitionsRemainingFromCurrentSet = g_settings[:repetitions] - m_currentRepetition;
 		var l_remainingFullRepetitions = l_repetitionsRemainingFromCurrentSet + l_repetitionsRemainingFromSetsNotStarted;
 		var l_timeOfOneRepetition = g_settings[:workTime] + g_settings[:restTime];
-		var l_totalSeconds = m_remainingWorkTime + m_remainingRestTime + (l_timeOfOneRepetition * l_remainingFullRepetitions);
-		
-		var l_timeLeft = formatSecondsToHMMSS(l_totalSeconds);
+		var l_timeLeft = m_remainingWorkTime + m_remainingRestTime + (l_timeOfOneRepetition * l_remainingFullRepetitions);
 		
 		return l_timeLeft;
 	}	
-	
+
+	function incrementTimeElapsed()
+	{
+		m_timeElapsed++;
+	}
+		
 	function getTimeElapsed()
 	{
-		var l_totalTime = formatSecondsToMMSS(m_timeElapsed);
-		return l_totalTime;
+		return m_timeElapsed;
 	}
-	
-	function shouldTransitToStateWork()
-	{
-		return m_remainingRestTime == 0;
-	}
-	
-	function shouldTransitToStateRest()
-	{
-		return m_remainingWorkTime == 0;
-	}
-	
-	function shouldResumeInStateWork()
-	{
-		return m_remainingWorkTime > 0;
-	}
-	
-	function vibrate(l_duration)
+
+	private function vibrate(l_duration)
 	{
 		var l_vibrateData = [new Attention.VibeProfile(100, l_duration)];
 		Attention.vibrate(l_vibrateData);
 	}
 	
-	function conditionalVibrate(l_condition, l_duration)
+	private function conditionalVibrate(l_condition, l_duration)
 	{
 		if(l_condition)
 		{
@@ -172,29 +201,5 @@ class ActivityModel
 		}
 	}	
 		
-	function formatSecondsToMMSS(p_seconds)
-	{
-		var l_minutes = p_seconds / 60;
-		var remainder = p_seconds - l_minutes * 60;
-		var l_seconds =  remainder;
-		
-		var l_MMSS = l_minutes.format("%02d") + ":" + l_seconds.format("%02d");
-		
-		return l_MMSS;	
-	}	
-	
-	function formatSecondsToHMMSS(p_seconds)
-	{
-		var l_hours = p_seconds / 3600;
-		var remainder = p_seconds - l_hours * 3600;
-		
-		var l_HMMSS = formatSecondsToMMSS(remainder);
-		
-		if (l_hours > 0)
-		{	
-			var l_HMMSS = l_hours.format("%d") + ":" + l_HMMSS;		
-		}
-		
-		return l_HMMSS;
-	}
+
 }

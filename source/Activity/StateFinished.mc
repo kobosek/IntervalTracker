@@ -1,11 +1,12 @@
 class StateFinished
 {
-	private var m_activity;
+	private var m_activityModel;
 	
-	function initialize(p_activity)
+	function initialize(p_activityModel)
 	{
 		System.println("State: StateFinished");
-		m_activity = p_activity;
+		
+		m_activityModel = p_activityModel;
 	}
 	
 	function onMenu()
@@ -20,13 +21,13 @@ class StateFinished
 	
 	function onBack()
 	{		
-		var l_finishedMenu = new FinishedMenu(m_activity);
+		var l_finishedMenu = new FinishedMenu(m_activityModel, method(:resumeActivity));
 		return true;
 	}
 
 	function onActivityTimer()
 	{
-		m_activity.updateTimeElapsed();
+		m_activityModel.incrementTimeElapsed();
 	}
 	
 	function isPaused()
@@ -37,5 +38,10 @@ class StateFinished
 	function isFinished()
 	{
 		return true;
+	}
+	
+	function resumeActivity()
+	{
+		System.println("cannot resume activity in StateFinished");
 	}
 }

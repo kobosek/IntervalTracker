@@ -4,8 +4,6 @@ class SettingsMenu
 {
 	function initialize()
 	{
-		System.println("Settings Menu");
-		
 		var l_menuTitle = Rez.Strings.SettingsMenuTitle;
 	
 		var l_menuItems = 

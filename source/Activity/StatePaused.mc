@@ -1,11 +1,14 @@
 class StatePaused
 {
-	private var m_activity;
+	private var m_activityModel;
+	private var m_activityWeakRef;
 	
-	function initialize(p_activity)
+	function initialize(p_activityModel, p_activityWeakRef)
 	{
 		System.println("State: StatePaused");
-		m_activity = p_activity;
+		
+		m_activityModel = p_activityModel;
+		m_activityWeakRef = p_activityWeakRef;
 	}
 	
 	function onMenu()
@@ -15,20 +18,20 @@ class StatePaused
 	
 	function onSelect()
 	{
-		m_activity.resumeActivity();
+		resumeActivity();
 	}
-
+	
 	function onBack()
 	{		
-		var l_finishedMenu = new FinishedMenu(m_activity);
+		var l_finishedMenu = new FinishedMenu(m_activityModel, method(:resumeActivity));
 		return true;
 	}
-
+	
 	function onActivityTimer()
 	{
-		m_activity.updateTimeElapsed();
+		m_activityModel.incrementTimeElapsed();
 	}
-
+		
 	function isPaused()
 	{
 		return true;
@@ -38,4 +41,16 @@ class StatePaused
 	{
 		return false;
 	}
+	
+	function resumeActivity()
+	{
+		if(m_activityModel.getRemainingWorkTime() > 0)
+		{
+			m_activityWeakRef.get().stateTransition(:stateWork);
+		}
+		else
+		{
+			m_activityWeakRef.get().stateTransition(:stateRest);
+		}
+	}	
 }

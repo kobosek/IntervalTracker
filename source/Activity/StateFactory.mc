@@ -1,26 +1,35 @@
 class StateFactory
 {
-	function createState(p_state, p_activity)
+	private var m_activityModel;
+	private var m_activityWeakRef;
+	
+	function initialize(p_activityModel, p_activityWeakRef)
 	{
-		if(p_state == :notStarted)
+		m_activityModel = p_activityModel;
+		m_activityWeakRef = p_activityWeakRef;
+	}
+	
+	function createState(p_state)
+	{
+		if(p_state == :stateNotStarted)
 		{
-			return new StateNotStarted(p_activity);	
+			return new StateNotStarted(m_activityWeakRef);
 		}
-		else if(p_state == :work)
+		else if(p_state == :stateWork)
 		{
-			return new StateWork(p_activity);	
+			return new StateWork(m_activityModel, m_activityWeakRef);
 		}
-		else if(p_state == :rest)
+		else if(p_state == :stateRest)
 		{
-			return new StateRest(p_activity);	
+			return new StateRest(m_activityModel, m_activityWeakRef);
 		}
-		else if(p_state == :paused)
+		else if(p_state == :statePaused)
 		{
-			return new StatePaused(p_activity);	
+			return new StatePaused(m_activityModel, m_activityWeakRef);
 		}
 		else
 		{
-			return new StateFinished(p_activity);	
+			return new StateFinished(m_activityModel);
 		}
 	}
 }

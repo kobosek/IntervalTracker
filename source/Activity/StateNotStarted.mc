@@ -1,11 +1,12 @@
 class StateNotStarted
 {
-	private var m_activity;
+	private var m_activityWeakRef;
 	
-	function initialize(p_activity)
+	function initialize(p_activityWeakRef)
 	{
 		System.println("State: StateNotStarted");
-		m_activity = p_activity;
+		
+		m_activityWeakRef = p_activityWeakRef;
 	}
 	
 	function onMenu()
@@ -15,7 +16,7 @@ class StateNotStarted
 	
 	function onSelect()
 	{
-		m_activity.startActivity();
+		startActivity();	
 	}
 	
 	function onBack()
@@ -25,7 +26,7 @@ class StateNotStarted
 	
 	function onActivityTimer()
 	{
-		System.println("onActivityTimer should not be triggered while in state: StateNotStarted");			
+		System.println("onActivityTimer() should not be triggered in StateNotStarted");
 	}
 	
 	function isPaused()
@@ -36,5 +37,10 @@ class StateNotStarted
 	function isFinished()
 	{
 		return false;
+	}
+	
+	private function startActivity()
+	{
+		m_activityWeakRef.get().stateTransition(:stateWork);
 	}
 }

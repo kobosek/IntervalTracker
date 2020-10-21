@@ -11,4 +11,9 @@
 	<string id="SettingsMenuWorkTimer">Work Time</string>
 	<string id="SettingsMenuRestTimer">Rest Time</string>
 	<string id="SettingsMenuActivityType">Activity Type</string>
+	
+	<string id="FinishedMenuTitle">Finish</string>
+	<string id="FinishedMenuResume">Resume</string>
+	<string id="FinishedMenuSave">Save</string>
+	<string id="FinishedMenuDiscard">Discard</string>
 </strings>
