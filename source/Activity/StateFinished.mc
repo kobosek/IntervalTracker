@@ -7,6 +7,9 @@ class StateFinished
 		System.println("State: StateFinished");
 		
 		m_activityModel = p_activityModel;
+		
+		m_activityModel.setPaused(false);
+		m_activityModel.setFinished(true);
 	}
 	
 	function onMenu()
@@ -28,16 +31,6 @@ class StateFinished
 	function onActivityTimer()
 	{
 		m_activityModel.incrementTimeElapsed();
-	}
-	
-	function isPaused()
-	{
-		return false;
-	}
-	
-	function isFinished()
-	{
-		return true;
 	}
 	
 	function resumeActivity()

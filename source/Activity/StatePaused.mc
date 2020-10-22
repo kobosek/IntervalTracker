@@ -9,6 +9,10 @@ class StatePaused
 		
 		m_activityModel = p_activityModel;
 		m_activityWeakRef = p_activityWeakRef;
+		
+				
+		m_activityModel.setPaused(true);
+		m_activityModel.setFinished(false);
 	}
 	
 	function onMenu()
@@ -30,16 +34,6 @@ class StatePaused
 	function onActivityTimer()
 	{
 		m_activityModel.incrementTimeElapsed();
-	}
-		
-	function isPaused()
-	{
-		return true;
-	}
-	
-	function isFinished()
-	{
-		return false;
 	}
 	
 	function resumeActivity()

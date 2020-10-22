@@ -9,6 +9,9 @@ class StateWork
 		
 		m_activityModel = p_activityModel;
 		m_activityWeakRef = p_activityWeakRef;
+		
+		m_activityModel.setPaused(false);
+		m_activityModel.setFinished(false);
 	}
 	
 	function onMenu()
@@ -39,16 +42,6 @@ class StateWork
 		{
 			m_activityWeakRef.get().stateTransition(:stateRest);
 		}	
-	}
-	
-	function isPaused()
-	{
-		return false;
-	}
-	
-	function isFinished()
-	{
-		return false;
 	}
 
 	private function pauseActivity()

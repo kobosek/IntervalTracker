@@ -26,17 +26,6 @@ class StateNotStarted
 	
 	function onActivityTimer()
 	{
-		System.println("onActivityTimer() should not be triggered in StateNotStarted");
-	}
-	
-	function isPaused()
-	{
-		return false;
-	}
-	
-	function isFinished()
-	{
-		return false;
 	}
 	
 	private function startActivity()

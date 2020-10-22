@@ -9,7 +9,10 @@ class IntervalTracker extends App.AppBase
 
 	function getInitialView() 
 	{
-		var l_activty = new Activity();
-		return [new ActivityView(l_activty), new ActivityDelegate(l_activty)];
+		var l_activityModel = new ActivityModel();
+		var l_activityDelegate = new ActivityDelegate(l_activityModel);
+		var l_activityView = new ActivityView(l_activityModel);
+		
+		return [l_activityView, l_activityDelegate];
 	}
 }

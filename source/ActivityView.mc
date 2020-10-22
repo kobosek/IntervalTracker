@@ -3,11 +3,11 @@ using Toybox.Graphics as Gfx;
 
 class ActivityView extends Ui.View 
 {
-	private var m_activity;
+	private var m_activityModel;
 			
-	function initialize(p_activity) 
+	function initialize(p_activityModel) 
   	{
-  		m_activity = p_activity;
+  		m_activityModel = p_activityModel;
 		View.initialize();
   	}
 
@@ -16,8 +16,8 @@ class ActivityView extends Ui.View
   		var l_width = p_dc.getWidth();
   		var l_height = p_dc.getHeight();		
 
-		var l_backgroundColor = m_activity.isPaused() ? Gfx.COLOR_BLACK : Gfx.COLOR_WHITE;
-		var l_textColor = m_activity.isPaused() ? Gfx.COLOR_WHITE : Gfx.COLOR_BLACK;
+		var l_backgroundColor = m_activityModel.isPaused() ? Gfx.COLOR_BLACK : Gfx.COLOR_WHITE;
+		var l_textColor = m_activityModel.isPaused() ? Gfx.COLOR_WHITE : Gfx.COLOR_BLACK;
 		var l_featureColor = Gfx.COLOR_RED;		
 		
 		//draw background: BACKGROUND COLOR
@@ -35,8 +35,8 @@ class ActivityView extends Ui.View
 		p_dc.setColor(l_textColor, Gfx.COLOR_TRANSPARENT);
 		p_dc.fillRectangle(l_width*6/16, l_height*10/16, l_width*2/16, l_height*2/16);	
 		
-		var l_timeLabel = m_activity.isFinished() ? "TIME ELAPSED" : "TIME REMAINING";
-		var l_timeValue = m_activity.isFinished() ? formatSecondsToHMMSS(m_activity.getTimeElapsed()) : formatSecondsToHMMSS(m_activity.getTimeLeft());	
+		var l_timeLabel = m_activityModel.isFinished() ? "TIME ELAPSED" : "TIME REMAINING";
+		var l_timeValue = m_activityModel.isFinished() ? formatSecondsToHMMSS(m_activityModel.getTimeElapsed()) : formatSecondsToHMMSS(m_activityModel.getTimeLeft());	
 			
 		//write field labels: TEXT COLOR
 		p_dc.drawText( l_width*8/16, 	   		  0, Gfx.FONT_SYSTEM_XTINY,   		  "HR", Gfx.TEXT_JUSTIFY_CENTER);
@@ -48,18 +48,18 @@ class ActivityView extends Ui.View
   	
   
   		//write field values: TEXT COLOR	
- 		p_dc.drawText( l_width*8/16,  l_height*2/16, Gfx.FONT_SYSTEM_NUMBER_MILD,         					   m_activity.getHeartRate(), Gfx.TEXT_JUSTIFY_CENTER | Gfx.TEXT_JUSTIFY_VCENTER);
-  		p_dc.drawText( l_width*4/16,  l_height*6/16, Gfx.FONT_SYSTEM_NUMBER_MILD, formatSecondsToMMSS(m_activity.getRemainingWorkTime()), Gfx.TEXT_JUSTIFY_CENTER | Gfx.TEXT_JUSTIFY_VCENTER);
-  		p_dc.drawText(l_width*12/16,  l_height*6/16, Gfx.FONT_SYSTEM_NUMBER_MILD, formatSecondsToMMSS(m_activity.getRemainingRestTime()), Gfx.TEXT_JUSTIFY_CENTER | Gfx.TEXT_JUSTIFY_VCENTER);
-  		p_dc.drawText( l_width*4/16, l_height*10/16, Gfx.FONT_SYSTEM_NUMBER_MILD, 					   m_activity.getCurrentRepetition(), Gfx.TEXT_JUSTIFY_CENTER | Gfx.TEXT_JUSTIFY_VCENTER);
-  		p_dc.drawText(l_width*12/16, l_height*10/16, Gfx.FONT_SYSTEM_NUMBER_MILD, 		  			           m_activity.getTimeOfDay(), Gfx.TEXT_JUSTIFY_CENTER | Gfx.TEXT_JUSTIFY_VCENTER); 		
+ 		p_dc.drawText( l_width*8/16,  l_height*2/16, Gfx.FONT_SYSTEM_NUMBER_MILD,         					   m_activityModel.getHeartRate(), Gfx.TEXT_JUSTIFY_CENTER | Gfx.TEXT_JUSTIFY_VCENTER);
+  		p_dc.drawText( l_width*4/16,  l_height*6/16, Gfx.FONT_SYSTEM_NUMBER_MILD, formatSecondsToMMSS(m_activityModel.getRemainingWorkTime()), Gfx.TEXT_JUSTIFY_CENTER | Gfx.TEXT_JUSTIFY_VCENTER);
+  		p_dc.drawText(l_width*12/16,  l_height*6/16, Gfx.FONT_SYSTEM_NUMBER_MILD, formatSecondsToMMSS(m_activityModel.getRemainingRestTime()), Gfx.TEXT_JUSTIFY_CENTER | Gfx.TEXT_JUSTIFY_VCENTER);
+  		p_dc.drawText( l_width*4/16, l_height*10/16, Gfx.FONT_SYSTEM_NUMBER_MILD, 					   m_activityModel.getCurrentRepetition(), Gfx.TEXT_JUSTIFY_CENTER | Gfx.TEXT_JUSTIFY_VCENTER);
+  		p_dc.drawText(l_width*12/16, l_height*10/16, Gfx.FONT_SYSTEM_NUMBER_MILD, 		  			           m_activityModel.getTimeOfDay(), Gfx.TEXT_JUSTIFY_CENTER | Gfx.TEXT_JUSTIFY_VCENTER); 		
   		p_dc.drawText( l_width*8/16, l_height*14/16, Gfx.FONT_SYSTEM_NUMBER_MILD,   	   									 l_timeValue, Gfx.TEXT_JUSTIFY_CENTER | Gfx.TEXT_JUSTIFY_VCENTER); 
   		
   		//write set counter field value: BACKGROUND COLOR
 		p_dc.setColor(l_backgroundColor, Gfx.COLOR_TRANSPARENT);
-  		p_dc.drawText(l_width*7/16, l_height*10/16, Gfx.FONT_SYSTEM_TINY, m_activity.getCurrentSet(), Gfx.TEXT_JUSTIFY_CENTER);
+  		p_dc.drawText(l_width*7/16, l_height*10/16, Gfx.FONT_SYSTEM_TINY, m_activityModel.getCurrentSet(), Gfx.TEXT_JUSTIFY_CENTER);
   	}
-  	
+
   	function formatSecondsToMMSS(p_seconds)
 	{
 		var l_minutes = p_seconds / 60;
@@ -84,32 +84,5 @@ class ActivityView extends Ui.View
 		}
 		
 		return l_HMMSS;
-	}
-}
-
-class ActivityDelegate extends Ui.BehaviorDelegate 
-{
-	private var m_activity;
-	
-	function initialize(p_activity) 
-  	{
-		m_activity = p_activity;
-    	BehaviorDelegate.initialize();
-  	}
-		
-	function onMenu()
-	{
-		m_activity.onMenu();
-	}
-
-	function onSelect() 
-	{
-		m_activity.onSelect();
-		return true;
-	}
-	
-	function onBack() 
-	{
-		return m_activity.onBack();
 	}
 }

@@ -1,4 +1,5 @@
 using Toybox.Attention as Attention;
+using Toybox.Activity as Activity;
 using Toybox.ActivityRecording as ActivityRecording;
 
 var g_settings = 
@@ -15,9 +16,10 @@ class ActivityModel
 	private var m_currentSet;
 	private var m_remainingWorkTime;
 	private var m_remainingRestTime;
-	
 	private var m_timeElapsed;
-	private var m_heartRate;
+	
+	private var m_paused;
+	private var m_finished;
 	
 	private var m_recordingSession;	
 	
@@ -28,7 +30,9 @@ class ActivityModel
 		m_remainingWorkTime = g_settings[:workTime];
 		m_remainingRestTime = g_settings[:restTime];
 		m_timeElapsed = 0;
-		m_heartRate = "--";	
+		
+		m_paused = false;
+		m_finished = false;
 		
 		m_recordingSession = ActivityRecording.createSession(
 		{
@@ -62,37 +66,36 @@ class ActivityModel
 	{
 		m_recordingSession.discard();
 	}	
-		
-	function updateHeartRate(p_sensorInfo)
+	
+	function setPaused(p_paused)
 	{
-		var l_hr = p_sensorInfo.heartRate;
-		
-        if(l_hr != null)
-        {
-			m_heartRate = l_hr;
-        }
+		m_paused = p_paused;
+	}
+	
+	function isPaused()
+	{
+		return m_paused;
+	}
+	
+	function setFinished(p_finished)
+	{
+		m_finished = p_finished;
+	}
+	
+	function isFinished()
+	{
+		return m_finished;
 	}
 	
 	function getHeartRate()
 	{
-//		var l_heartRate = Activity.getActivityInfo().currentHeartRate;
-//		
-//		if(l_heartRate == null)
-//		{
-//			l_heartRate = "--";
-//			if(ActivityMonitor has :getHeartRateHistory)
-//			{
-//				var l_heartRateHistory = ActivityMonitor.getHeartRateHistory(1, true);
-//				var l_heartRateSample = l_heartRateHistory.next();
-//				
-//				if(l_heartRateSample != null and l_heartRateSample.heartRate != ActivityMonitor.INVALID_HR_SAMPLE)
-//				{
-//					l_heartRate = l_heartRateSample.heartRate;
-//				}	
-//			}
-//		}
-//		return l_heartRate;
-		return m_heartRate;
+		var l_heartRate = Activity.getActivityInfo().currentHeartRate;	
+		
+		if(l_heartRate == null)
+		{
+			l_heartRate = "--";	
+		}
+		return l_heartRate;
 	}
 	
 	function restartTimers()
@@ -116,7 +119,7 @@ class ActivityModel
 	{
 		m_remainingRestTime--;
 		conditionalVibrate(m_remainingRestTime < 3, 300);	
-		conditionalVibrate(isLastRepetition() && isLastSet(), 3000);		
+		conditionalVibrate(m_remainingRestTime == 0 && isLastRepetition() && isLastSet(), 3000);		
 	}	
 	
 	function getRemainingRestTime()
