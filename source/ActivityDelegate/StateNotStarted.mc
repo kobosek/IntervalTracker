@@ -1,6 +1,5 @@
 class StateNotStarted
-{
-	private var m_activityWeakRef;
+{	private var m_activityWeakRef;
 	
 	function initialize(p_activityWeakRef)
 	{
@@ -28,8 +27,13 @@ class StateNotStarted
 	{
 	}
 	
+	function stateTransition(p_state)
+	{
+		m_activityWeakRef.get().stateTransition(p_state);
+	}
+	
 	private function startActivity()
 	{
-		m_activityWeakRef.get().stateTransition(:stateWork);
+		stateTransition(:stateWork);
 	}
 }

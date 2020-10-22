@@ -3,22 +3,22 @@ using Toybox.Timer as Timer;
 
 class ActivityDelegate extends Ui.BehaviorDelegate 
 {	
-	private var m_model;
+	private var m_activityModel;
 	private var m_currentState;
 	private var m_workTimer;
 	
-	function initialize(p_model)
+	function initialize(p_activityModel)
 	{	
-		m_model = p_model;					
-		m_workTimer = new Timer.Timer();
-		stateTransition(:stateNotStarted);
-		startOneSecondTimer();
 		BehaviorDelegate.initialize();
+		m_activityModel = p_activityModel;
+		stateTransition(:stateNotStarted);			
+		m_workTimer = new Timer.Timer();
+		startOneSecondTimer();
 	}	
 	
 	function stateTransition(p_state)
 	{
-		var l_stateFactory = new StateFactory(m_model, self.weak());
+		var l_stateFactory = new StateFactory(m_activityModel, self.weak());
 		m_currentState = l_stateFactory.createState(p_state);
 	}	
 	

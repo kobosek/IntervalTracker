@@ -40,13 +40,18 @@ class StateWork
 		
 		if(m_activityModel.getRemainingWorkTime() == 0)
 		{
-			m_activityWeakRef.get().stateTransition(:stateRest);
+			stateTransition(:stateRest);
 		}	
 	}
-
+	
+	function stateTransition(p_state)
+	{
+		m_activityWeakRef.get().stateTransition(p_state);
+	}
+		
 	private function pauseActivity()
 	{
-		m_activityWeakRef.get().stateTransition(:statePaused);
+		stateTransition(:statePaused);
 	}
 
 }

@@ -42,12 +42,12 @@ class StateRest
 		{
 			if(m_activityModel.isLastRepetition() && m_activityModel.isLastSet())
 			{
-				m_activityWeakRef.get().stateTransition(:stateFinished);	
+				stateTransition(:stateFinished);	
 			}
 			else
 			{
 				m_activityModel.restartTimers();
-				m_activityWeakRef.get().stateTransition(:stateWork);
+				stateTransition(:stateWork);
 				
 				if(m_activityModel.isLastRepetition())
 				{
@@ -60,10 +60,15 @@ class StateRest
 				}
 			}
 		}
+	}	
+	
+	function stateTransition(p_state)
+	{
+		m_activityWeakRef.get().stateTransition(p_state);
 	}
 
 	private function pauseActivity()
 	{
-		m_activityWeakRef.get().stateTransition(:statePaused);
+		stateTransition(:statePaused);
 	}
 }
